@@ -10,6 +10,7 @@ pub struct Entity {
 pub struct Game {
     pub player: Entity,
     rustbox: RustBox,
+    map: [i32; 10000]
 }
 
 impl Game {
@@ -18,8 +19,12 @@ impl Game {
             Result::Ok(v) => v,
             Result::Err(e) => panic!("Failed: {}", e),
         };
-        let player = Entity { x: 0, y: 0 };
-        return Game { player: player, rustbox: rustbox };
+        let player = Entity { x: 100, y: 100 };
+        Game {
+            player: player,
+            rustbox: rustbox,
+            map: [0; 10000]
+        }
     }
 
     pub fn process_input(&mut self, key: &Key) -> bool {

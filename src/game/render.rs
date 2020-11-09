@@ -1,8 +1,5 @@
 use rustbox::{Color, RustBox};
 
-const WIDTH: i32 = 80;
-const HEIGHT: i32 = 24;
-
 pub fn render(rustbox: &RustBox, game: &super::Game) {
     rustbox.clear();
     /*
@@ -23,7 +20,8 @@ pub fn render(rustbox: &RustBox, game: &super::Game) {
         "Press 'q' to quit.",
     );
     */
-    render_tree(rustbox, &game.player, (10, 10));
+    render_map(rustbox, &game.player, &game.map);
+    render_tree(rustbox, &game.player, (110, 110));
     render_player(rustbox, &game.player);
     rustbox.present();
 }
@@ -39,6 +37,15 @@ fn game_coords_to_camera(rustbox: &RustBox, player: &super::Entity, x: i32, y: i
 
 fn is_visible(rustbox: &RustBox, x: usize, y: usize) -> bool {
     x < rustbox.width() && y < rustbox.height()
+}
+
+fn render_map(rustbox: &RustBox, player: &super::Entity, map: &[i32; 10000]) {
+    for i in 0..map.len() {
+        let (x, y) = game_coords_to_camera(rustbox, player, (i % 100) as i32, (i / 100) as i32);
+        if is_visible(rustbox, x, y) {
+            rustbox.print(x, y, rustbox::RB_NORMAL, Color::Yellow, Color::Yellow, " ");
+        }
+    }
 }
 
 fn render_tree(rustbox: &RustBox, player: &super::Entity, coords: (i32, i32)) {
