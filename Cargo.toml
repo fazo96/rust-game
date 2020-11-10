@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 
 rustbox = "*"
+rand = "0.7.3"
+rand_pcg = "0.2.1"

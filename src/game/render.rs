@@ -26,7 +26,7 @@ pub fn render(rustbox: &RustBox, game: &super::Game) {
     rustbox.present();
 }
 
-fn game_coords_to_camera(rustbox: &RustBox, player: &super::Entity, x: i32, y: i32) -> (usize, usize) {
+fn game_coords_to_camera(rustbox: &RustBox, player: &super::Player, x: i32, y: i32) -> (usize, usize) {
     let result_x = x + (rustbox.width() as i32) / 2 - player.x;
     let result_y = y + (rustbox.height() as i32) / 2 - player.y;
     if result_x < 0 || result_y < 0 {
@@ -39,23 +39,51 @@ fn is_visible(rustbox: &RustBox, x: usize, y: usize) -> bool {
     x < rustbox.width() && y < rustbox.height()
 }
 
-fn render_map(rustbox: &RustBox, player: &super::Entity, map: &[i32; 10000]) {
+fn render_map(rustbox: &RustBox, player: &super::Player, map: &super::GameMap) {
     for i in 0..map.len() {
-        let (x, y) = game_coords_to_camera(rustbox, player, (i % 100) as i32, (i / 100) as i32);
-        if is_visible(rustbox, x, y) {
-            rustbox.print(x, y, rustbox::RB_NORMAL, Color::Yellow, Color::Yellow, " ");
+        for j in 0..map[i].len() {
+            render_tile(rustbox, &map[i][j], player, i, j);
         }
     }
 }
 
-fn render_tree(rustbox: &RustBox, player: &super::Entity, coords: (i32, i32)) {
+fn render_tile(rustbox: &RustBox, tile: &super::Tile, player: &super::Player, x: usize, y: usize) {
+    let (x, y) = game_coords_to_camera(rustbox, player, x as i32, y as i32);
+    if is_visible(rustbox, x, y) {
+        let bg_color = Color::Black;
+        let fg_color = match &tile.tile_type {
+            super::TileType::Grass => Color::Green,
+            super::TileType::Dirt => Color::Yellow,
+            _ => Color::Black
+        };
+        let graphic = match &tile.tile_type {
+            super::TileType::Grass => match &tile.variant {
+                1 => ",",
+                2 => " ",
+                3 => "'",
+                4 => "\"",
+                _ => " "
+            },
+            super::TileType::Dirt => match &tile.variant {
+                1 => " ",
+                2 => "-",
+                3 => ".",
+                4 => "_",
+                _ => " "
+            }
+        };
+        rustbox.print(x, y, rustbox::RB_NORMAL, fg_color, bg_color, graphic);
+    }
+}
+
+fn render_tree(rustbox: &RustBox, player: &super::Player, coords: (i32, i32)) {
     let (x, y) = game_coords_to_camera(rustbox, player, coords.0, coords.1);
     if is_visible(rustbox, x, y) {
         rustbox.print(x, y, rustbox::RB_NORMAL, Color::Green, Color::Default, "T");
     }
 }
 
-fn render_player(rustbox: &RustBox, player: &super::Entity) {
+fn render_player(rustbox: &RustBox, player: &super::Player) {
     let (x, y) = game_coords_to_camera(rustbox, player, player.x, player. y);
     if is_visible(rustbox, x, y) {
         rustbox.print(x, y, rustbox::RB_NORMAL, Color::White, Color::Default, "@");
