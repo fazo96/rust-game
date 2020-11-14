@@ -79,10 +79,14 @@ impl Game {
         self.player.current_position()
     }
 
+    pub fn cursor_position(&self) -> &Position {
+        self.player.cursor_position()
+    }
+
     pub fn camera_position(&self) -> &Position {
         match self.state {
-            GameState::InspectTiles => self.player.cursor_position(),
-            _ => self.player.current_position()
+            GameState::InspectTiles => self.cursor_position(),
+            _ => self.player_position()
         }
     }
 
@@ -108,8 +112,12 @@ impl Game {
             player.tick(self);
             self.player = player;
             if self.state == GameState::Gameplay {
-                for i in 0..self.entities.len() {
-                    (*self.entities[i]).tick(self);
+                let len = self.entities.len();
+                for i in 0..len {
+                    let mut entity = self.entities.pop().unwrap();
+                    entity.tick(self);
+                    self.entities.push(entity);
+                    self.entities.swap(i, len - 1)
                 }
                 self.tick_count += 1;
             }
