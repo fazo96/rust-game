@@ -35,7 +35,7 @@ impl fmt::Display for GameState {
 pub struct Game {
     state: GameState,
     player: Player,
-    entities: Vec<Animal>,
+    entities: Vec<Box<dyn Entity>>,
     rustbox: RustBox,
     map: GameMap,
     rng: RNG,
@@ -61,10 +61,12 @@ impl Game {
             tick_count: 0,
             last_input_key: None
         };
+        // Generate Map
         game.map.generate(&mut game.rng);
+        // Populate Entities
         for _ in 0..10 {
             let animal = Animal::new(map_center + game.rng.gen_range(-50, 50), map_center + game.rng.gen_range(-50, 50));
-            game.entities.push(animal);
+            game.entities.push(Box::new(animal));
         }
         game
     }
@@ -107,9 +109,7 @@ impl Game {
             self.player = player;
             if self.state == GameState::Gameplay {
                 for i in 0..self.entities.len() {
-                    let mut entity = self.entities[i];
-                    entity.tick(self);
-                    self.entities[i] = entity;
+                    (*self.entities[i]).tick(self);
                 }
                 self.tick_count += 1;
             }

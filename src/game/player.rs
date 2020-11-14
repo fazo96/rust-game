@@ -1,12 +1,14 @@
 use super::position::*;
 use super::{Game, GameState};
 use super::Entity;
-use rustbox::Key;
+use super::render::RenderInfo;
+use rustbox::{Color,Key};
 
 #[derive(Copy, Clone)]
 pub struct Player {
     position: Position,
     cursor_position: Position,
+    render_info: RenderInfo
 }
 
 impl Player {
@@ -14,6 +16,7 @@ impl Player {
         Player {
             position: Position::new(x, y),
             cursor_position: Position::new(x, y),
+            render_info: RenderInfo::new('@', Color::White)
         }
     }
 
@@ -29,6 +32,10 @@ impl Entity for Player {
 
     fn position(&mut self) -> &mut Position {
         &mut self.position
+    }
+
+    fn render_info(&self) -> &RenderInfo {
+        &self.render_info
     }
 
     fn tick(&mut self, game: &mut Game) {

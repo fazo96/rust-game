@@ -1,8 +1,20 @@
 use rustbox::{Color, RustBox};
 use super::GameState;
-use super::{Game,Position,Entity,Animal};
+use super::{Game,Position,Entity};
 
 const SIDE_PANEL_WIDTH: usize = 32;
+
+#[derive(Copy, Clone, PartialEq)]
+pub struct RenderInfo {
+    pub character: char,
+    pub color: Color
+}
+
+impl RenderInfo {
+    pub fn new(character: char, color: Color) -> RenderInfo {
+        RenderInfo { character, color }
+    }
+}
 
 pub fn render(rustbox: &RustBox, game: &super::Game) {
     rustbox.clear();
@@ -10,7 +22,7 @@ pub fn render(rustbox: &RustBox, game: &super::Game) {
     render_map(rustbox, camera_position, &game.map);
     render_player(rustbox, camera_position, game.player_position());
     for i in 0..game.entities.len() {
-        render_entity(rustbox, camera_position, &game.entities[i]);
+        render_entity(rustbox, camera_position, &*game.entities[i]);
     }
     if game.current_state() == GameState::InspectTiles {
         render_cursor(rustbox, camera_position)
@@ -75,11 +87,10 @@ fn render_player(rustbox: &RustBox, camera_position: &Position, player_position:
     }
 }
 
-fn render_entity(rustbox: &RustBox, camera_position: &Position, entity: &Animal) {
+fn render_entity(rustbox: &RustBox, camera_position: &Position, entity: &dyn Entity) {
     let (x, y) = game_coords_to_camera(rustbox, camera_position, entity.current_position());
     if is_visible(rustbox, x, y) {
-        let color = if entity.state == super::animals::AnimalState::Idle { Color::Cyan } else { Color::Red };
-        rustbox.print(x, y, rustbox::RB_NORMAL, color, Color::Default, "a");
+        rustbox.print(x, y, rustbox::RB_NORMAL, entity.render_info().color, Color::Default, &entity.render_info().character.to_string());
     }
 }
 

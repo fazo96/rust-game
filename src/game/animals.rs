@@ -1,6 +1,8 @@
 use rand::prelude::*;
 use super::Entity;
 use super::position::*;
+use super::render::RenderInfo;
+use rustbox::Color;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum AnimalState {
@@ -11,14 +13,16 @@ pub enum AnimalState {
 #[derive(Copy, Clone)]
 pub struct Animal {
     position: Position,
-    pub state: AnimalState
+    state: AnimalState,
+    render_info: RenderInfo
 }
 
 impl Animal {
     pub fn new(x: i32, y: i32) -> Animal {
         Animal {
             position: Position::new(x, y),
-            state: AnimalState::Idle
+            state: AnimalState::Idle,
+            render_info: RenderInfo::new('a', Color::Cyan)
         }
     }
 }
@@ -32,9 +36,14 @@ impl Entity for Animal {
         &self.position
     }
 
+    fn render_info(&self) -> &RenderInfo {
+        &self.render_info
+    }
+
     fn tick(&mut self, game: &mut super::Game) {
         match self.state {
             AnimalState::Idle => {
+                self.render_info.color = Color::Cyan;
                 if game.rng.gen_bool(0.3) {
                     // Move randomly, sometimes.
                     self.position.move_relative(game.rng.gen_range(-1, 2), game.rng.gen_range(-1, 2))
@@ -45,6 +54,7 @@ impl Entity for Animal {
                 } 
             },
             AnimalState::FleeFromPlayer => {
+                self.render_info.color = Color::Red;
                 if self.can_see(&game.player) {
                     // If we see the player we flee
                     let dir = self.current_position().direction_for(game.player_position());
