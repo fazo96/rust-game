@@ -13,9 +13,10 @@ pub enum TileType {
 
 #[derive(Copy, Clone)]
 pub struct Tile {
-    position: Position,
     pub tile_type: TileType,
-    pub variant: usize
+    pub variant: usize,
+    position: Position,
+    passable: bool
 }
 
 impl Tile {
@@ -23,12 +24,24 @@ impl Tile {
         Tile {
             tile_type: TileType::Dirt,
             variant: 0,
-            position: Position::new(x as i32, y as i32)
+            position: Position::new(x as i32, y as i32),
+            passable: true
         }
     }
 
     pub fn position(&self) -> &Position {
         &self.position 
+    }
+
+    pub fn is_passable(&self) -> bool {
+        true
+    }
+
+    pub fn name(&self) -> &str {
+        match self.tile_type {
+            TileType::Grass => "Grass",
+            TileType::Dirt => "Dirt"
+        }
     }
 }
 

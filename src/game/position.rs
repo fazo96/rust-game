@@ -1,6 +1,7 @@
 use std::cmp::{min,max};
+use super::Game;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Position {
     x: i32,
     y: i32
@@ -20,8 +21,19 @@ impl Position {
     }
 
     pub fn move_relative(&mut self, h: i32, v: i32) {
-        self.x = self.x + h; 
+        self.x = self.x + h;
         self.y = self.y + v;
+    }
+
+    pub fn move_relative_if_passable(&mut self, h: i32, v: i32, game: &Game) -> bool {
+        let destination = Position::new(self.x + h, self.y + v);
+        if game.is_passable(&destination) {
+            self.x = destination.x();
+            self.y = destination.y();
+            true
+        } else {
+            false
+        }
     }
 
     pub fn distance_parts_from(&self, position: &Position) -> (i32, i32) {

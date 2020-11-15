@@ -23,6 +23,23 @@ impl Player {
     pub fn cursor_position(&self) -> &Position {
         &self.cursor_position
     }
+
+    fn mov(&mut self, h: i32, v: i32, game: &Game) -> bool {
+        let position = match game.state {
+            GameState::InspectTiles => &mut self.cursor_position,
+            _ => &mut self.position
+        };
+        match game.current_state() {
+            GameState::Gameplay => {
+                position.move_relative_if_passable(h, v, game)
+            },
+            GameState::InspectTiles => {
+                position.move_relative(h, v);
+                true
+            },
+            _ => false
+        }
+    }
 }
 
 impl Entity for Player {
@@ -38,25 +55,29 @@ impl Entity for Player {
         &self.render_info
     }
 
+    fn name(&self) -> Option<&str> {
+        Some("Player")
+    }
+
+    fn kind(&self) -> &str {
+        "Human"
+    }
+
     fn tick(&mut self, game: &mut Game) {
-        let position = match game.state {
-            GameState::InspectTiles => &mut self.cursor_position,
-            _ => &mut self.position
-        };
         match game.last_input_key {
             None => {},
             Some(key) => match key {
                 Key::Left => {
-                    position.move_relative(-1, 0)
+                    self.mov(-1, 0, game);
                 }
                 Key::Right => {
-                    position.move_relative(1, 0)
+                    self.mov(1, 0, game);
                 }
                 Key::Up => {
-                    position.move_relative(0, -1)
+                    self.mov(0, -1, game);
                 }
                 Key::Down => {
-                    position.move_relative(0, 1)
+                    self.mov(0, 1, game);
                 },
                 Key::Esc => {
                     if game.state == GameState::Gameplay {

@@ -103,14 +103,65 @@ fn render_side_panel(rustbox: &RustBox, game: &Game) {
     for i in 0..rustbox.width() {
         rustbox.print(SIDE_PANEL_WIDTH, i, rustbox::RB_NORMAL, Color::White, Color::Default, "|");
     }
-    rustbox.print(0, 0, rustbox::RB_NORMAL, Color::White, Color::Default, "Player");
-    render_debug(rustbox, game, 2);
+    let mut y = render_entity_info(rustbox, game, 0);
+    y = y + render_tile_info(rustbox, game, y);
+    if y > 0 { y = y + 1 }
+    render_debug(rustbox, game, y);
 }
 
-fn render_debug(rustbox: &RustBox, game: &Game, y: usize) {
+fn render_entity_info(rustbox: &RustBox, game: &Game, y: usize) -> usize {
+    let position = game.camera_position();
+    let optional_entity = game.entities_at(position).pop();
+    let mut lines = 0;
+    if optional_entity.is_some() {
+        let entity = optional_entity.unwrap();
+        let name = entity.name();
+        let mut x = 0;
+        if name.is_some() {
+            x = name.unwrap().len() + 1;
+            rustbox.print(0, y + lines, rustbox::RB_BOLD, Color::White, Color::Default, name.unwrap());
+            lines += 1;
+        }
+        if x > 0 {
+            rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, &format!(", {}", entity.kind()));
+        } else {
+            rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, entity.kind());
+        }
+        lines += 1;
+    } else if game.player_position() == position {
+        let x = game.player.name().unwrap().len();
+        rustbox.print(0, y + lines, rustbox::RB_BOLD, Color::White, Color::Default, game.player.name().unwrap());
+        rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, &format!(", {}", game.player.kind()));
+        lines += 1;
+    }
+    lines
+}
+
+fn render_tile_info(rustbox: &RustBox, game: &Game, y: usize) -> usize {
+    let tile = game.tile_at(game.camera_position());
+    let mut lines = 0;
+    let mut x = 0;
+    if tile.is_some() {
+        let fg_color = match tile.unwrap().tile_type {
+            super::TileType::Grass => Color::Green,
+            super::TileType::Dirt => Color::Yellow,
+        };
+        let name = tile.unwrap().name();
+        rustbox.print(x, y + lines, rustbox::RB_NORMAL, fg_color, Color::Default, name);
+        x = x + name.len();
+        let passable = tile.unwrap().is_passable() && game.is_passable(game.camera_position());
+        let passability = if passable { "Passable" } else { "Blocked" };
+        rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, &format!(", {}", passability));
+        lines = lines + 1;
+    }
+    lines
+}
+
+fn render_debug(rustbox: &RustBox, game: &Game, y: usize) -> usize {
     rustbox.print(0, y, rustbox::RB_NORMAL, Color::White, Color::Default, "Debug Info:");
     rustbox.print(0, y + 1, rustbox::RB_NORMAL, Color::White, Color::Default, &format!("Ticks: {}", game.tick_count()).to_string());
     rustbox.print(0, y + 2, rustbox::RB_NORMAL, Color::White, Color::Default, &format!("Entity Count: {}", game.entities.len()).to_string());
     rustbox.print(0, y + 3, rustbox::RB_NORMAL, Color::White, Color::Default, &format!("Player Pos: {} {}", game.player_position().x(), game.player_position().y()).to_string());
     rustbox.print(0, y + 4, rustbox::RB_NORMAL, Color::White, Color::Default, &format!("Game Mode: {}", game.state.to_string()));
+    y + 5
 }

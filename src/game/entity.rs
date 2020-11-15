@@ -7,6 +7,8 @@ pub trait Entity {
     fn position(&mut self) -> &mut Position;
     fn tick(&mut self, game: &mut Game);
     fn render_info(&self) -> &RenderInfo;
+    fn name(&self) -> Option<&str>;
+    fn kind(&self) -> &str;
 
     fn can_see(&self, entity: &dyn Entity) -> bool {
         self.current_position().distance_from(entity.current_position()) < 15.0

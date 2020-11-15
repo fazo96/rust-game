@@ -34,7 +34,7 @@ impl fmt::Display for GameState {
 
 pub struct Game {
     state: GameState,
-    player: Player,
+    player: Box<Player>,
     entities: Vec<Box<dyn Entity>>,
     rustbox: RustBox,
     map: GameMap,
@@ -53,7 +53,7 @@ impl Game {
         let map_center = GameMap::center() as i32;
         let mut game = Game {
             state: GameState::Gameplay,
-            player: Player::new(map_center, map_center),
+            player: Box::new(Player::new(map_center, map_center)),
             rustbox,
             rng: Pcg64::seed_from_u64(1234),
             map,
@@ -98,6 +98,24 @@ impl Game {
         self.tick_count
     }
 
+    pub fn entities_at(&self, position: &Position) -> Vec<&Box<dyn Entity>> {
+        self.entities.iter().filter(|entity| entity.current_position() == position).collect()
+    }
+
+    pub fn tile_at(&self, position: &Position) -> Option<&Tile> {
+        self.map.at(position.x(), position.y())
+    }
+
+    pub fn is_passable(&self, position: &Position) -> bool {
+        let tile = self.tile_at(position);
+        if tile.is_none() {
+            false
+        } else {
+            let no_entities = self.entities_at(position).is_empty() && self.player.current_position() != position;
+            tile.unwrap().is_passable() && no_entities
+        }
+    }
+
     pub fn run(&mut self) {
         while self.state != GameState::Quit {
             render(&self.rustbox, &self);
@@ -108,9 +126,9 @@ impl Game {
                 Err(e) => panic!("{}", e.to_string()),
                 _ => {}
             }
-            let mut player = self.player;
+            let mut player = *self.player;
             player.tick(self);
-            self.player = player;
+            self.player = Box::new(player);
             if self.state == GameState::Gameplay {
                 let len = self.entities.len();
                 for i in 0..len {
