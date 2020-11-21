@@ -10,6 +10,7 @@ pub mod entity;
 pub mod position;
 pub mod player;
 pub mod map;
+pub mod rpg;
 
 use std::fmt;
 use render::render;
@@ -126,7 +127,7 @@ impl Game {
                 Err(e) => panic!("{}", e.to_string()),
                 _ => {}
             }
-            let mut player = *self.player;
+            let mut player = *self.player.clone();
             player.tick(self);
             self.player = Box::new(player);
             if self.state == GameState::Gameplay {

@@ -2,18 +2,21 @@ use super::position::*;
 use super::{Game, GameState};
 use super::Entity;
 use super::render::RenderInfo;
+use super::rpg::CharacterStats;
 use rustbox::{Color,Key};
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Player {
     position: Position,
     cursor_position: Position,
-    render_info: RenderInfo
+    render_info: RenderInfo,
+    character_stats: CharacterStats
 }
 
 impl Player {
     pub fn new(x: i32, y: i32) -> Player {
         Player {
+            character_stats: CharacterStats::new(5, 5, 30),
             position: Position::new(x, y),
             cursor_position: Position::new(x, y),
             render_info: RenderInfo::new('@', Color::White)
@@ -61,6 +64,10 @@ impl Entity for Player {
 
     fn kind(&self) -> &str {
         "Human"
+    }
+
+    fn stats(&self) -> &CharacterStats {
+        &self.character_stats
     }
 
     fn tick(&mut self, game: &mut Game) {

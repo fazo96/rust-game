@@ -1,6 +1,7 @@
 use super::position::*;
 use super::Game;
 use super::render::RenderInfo;
+use super::rpg::CharacterStats;
 
 pub trait Entity {
     fn current_position(&self) -> &Position;
@@ -9,8 +10,9 @@ pub trait Entity {
     fn render_info(&self) -> &RenderInfo;
     fn name(&self) -> Option<&str>;
     fn kind(&self) -> &str;
+    fn stats(&self) -> &CharacterStats;
 
-    fn can_see(&self, entity: &dyn Entity) -> bool {
-        self.current_position().distance_from(entity.current_position()) < 15.0
+    fn can_see(&self, position: &Position) -> bool {
+        self.current_position().distance_from(position) < (self.stats().per.lvl() as f32)
     }
 }

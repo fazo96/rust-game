@@ -34,7 +34,7 @@ impl Tile {
     }
 
     pub fn is_passable(&self) -> bool {
-        true
+        self.passable
     }
 
     pub fn name(&self) -> &str {
@@ -67,6 +67,12 @@ impl GameMap {
             Some(&self.tiles[MAP_SIZE * (x as usize) + (y as usize)])
         } else {
             None
+        }
+    }
+
+    pub fn replace_tile(&mut self, x: i32, y: i32, tile: Tile) {
+        if self.is_in_bounds(x, y) {
+            self.tiles[MAP_SIZE * (x as usize) + (y as usize)] = tile;
         }
     }
 

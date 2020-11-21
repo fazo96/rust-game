@@ -1,6 +1,7 @@
 use rustbox::{Color, RustBox};
 use super::GameState;
 use super::{Game,Position,Entity};
+use super::rpg::CharacterStats;
 
 const SIDE_PANEL_WIDTH: usize = 32;
 
@@ -19,10 +20,13 @@ impl RenderInfo {
 pub fn render(rustbox: &RustBox, game: &super::Game) {
     rustbox.clear();
     let camera_position = game.camera_position();
-    render_map(rustbox, camera_position, &game.map);
+    render_map(rustbox, camera_position, &game.player, &game.map);
     render_player(rustbox, camera_position, game.player_position());
     for i in 0..game.entities.len() {
-        render_entity(rustbox, camera_position, &*game.entities[i]);
+        let entity = &*game.entities[i];
+        if game.player.can_see(entity.current_position()) {
+            render_entity(rustbox, camera_position, entity);
+        }
     }
     if game.current_state() == GameState::InspectTiles {
         render_cursor(rustbox, camera_position)
@@ -44,10 +48,13 @@ fn is_visible(rustbox: &RustBox, x: usize, y: usize) -> bool {
     x < rustbox.width() && y < rustbox.height() && x > SIDE_PANEL_WIDTH
 }
 
-fn render_map(rustbox: &RustBox, camera_position: &Position, map: &super::GameMap) {
+fn render_map(rustbox: &RustBox, camera_position: &Position, player: &super::Player, map: &super::GameMap) {
     let portion = map.portion_around(camera_position, 100);
     for i in 0..portion.len() {
-        render_tile(rustbox, &portion[i], camera_position);
+        let tile = &portion[i];
+        if player.can_see(tile.position()) {
+            render_tile(rustbox, tile, camera_position);
+        }
     }
 }
 
@@ -127,12 +134,33 @@ fn render_entity_info(rustbox: &RustBox, game: &Game, y: usize) -> usize {
         } else {
             rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, entity.kind());
         }
-        lines += 1;
+        lines += 2;
+        lines += render_character_stats(rustbox, entity.stats(), lines);
     } else if game.player_position() == position {
         let x = game.player.name().unwrap().len();
         rustbox.print(0, y + lines, rustbox::RB_BOLD, Color::White, Color::Default, game.player.name().unwrap());
         rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, &format!(", {}", game.player.kind()));
-        lines += 1;
+        lines += 2;
+        lines += render_character_stats(rustbox, game.player.stats(), lines);
+    }
+    lines + 1
+}
+
+fn render_character_stats(rustbox: &RustBox, stats: &CharacterStats, y: usize) -> usize {
+    let mut lines = 0;
+    for stat in stats.as_vec() {
+        let mut x = 0;
+        let name = stat.name();
+        let fg_color = match name {
+            "Strength" => Color::Red,
+            "Dexterity" => Color::Yellow,
+            "Perception" => Color::Blue,
+            _ => Color::White
+        };
+        rustbox.print(x, y + lines, rustbox::RB_NORMAL, fg_color, Color::Default, name);
+        x = x + name.len();
+        rustbox.print(x, y + lines, rustbox::RB_NORMAL, Color::White, Color::Default, &format!(": {}", stat.lvl()));
+        lines = lines + 1;
     }
     lines
 }
